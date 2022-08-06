@@ -3,29 +3,12 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtx/vector_angle.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
+#include <iostream>
 #include <vector>
-
-enum Camera_Mode {
-	STATIC,
-	FIRST_PERSON,
-};
-
-enum Camera_Movement {
-	FORWARD,
-	BACKWARD,
-	LEFT,
-	RIGHT,
-	UP,
-	DOWN,
-};
-
-// Default camera values
-const float YAW = -90.0f;
-const float PITCH = 0.0f;
-const float SPEED = 2.5f;
-const float SENSITIVITY = 0.1f;
-const float ZOOM = 45.0f;
 
 class Camera {
 public:
@@ -33,23 +16,21 @@ public:
 	glm::vec3 front, up, right;
 	glm::vec3 worldUp;
 
-	Camera_Mode mode = STATIC;
+	glm::vec3 targetPos = {0, 0, 0};
 
-	float yaw, pitch;
+	float translationSpeed = 2.0f;
+	float rotationSpeed = 4.0f;
+	float zoomSpeed = 0.1f;
 
-	float movementSpeed, mouseSensitivity, zoom;
-
-	Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH);
-	Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch);
+	Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f));
 
 	glm::mat4 getViewMatrix() const;
 
-	void processKeyboard(Camera_Movement direction, float deltaTime);
-	void processMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true);
-	void processMouseScroll(float yoffset);
+	void processZoom(float yoffset);
+	void processRotations(float xAngle, float yAngle);
+	void processTranslations(float xVelocity, float yVelocity);
 
 private:
 	void updateCameraVectors();
-
 };
 

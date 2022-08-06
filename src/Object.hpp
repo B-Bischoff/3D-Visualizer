@@ -8,12 +8,28 @@
 
 #include <iostream>
 #include <vector>
+#include <time.h>
+#include <stdlib.h>
 #include "Program.hpp"
 #include "ObjectLoader.hpp"
+#include "TextureLoader.hpp"
+
+enum Drawing_mode {
+	TRIANGLES,
+	WIREFRAME,
+	POINTS,
+};
+
+enum Material_type {
+	COLOR,
+	TEXTURE,
+};
 
 class Object {
 public:
 	glm::vec3 translation, rotation, scale;
+	glm::vec4 color = {1, 1, 1, 1};
+	bool visible = true;
 
 	Object(ObjectLoader objectLoader);
 	Object(std::vector<float> positions,
@@ -21,9 +37,17 @@ public:
 		std::vector<float> textureCoords,
 		std::vector<unsigned int> indices);
 
+	Drawing_mode renderMode = TRIANGLES;
+	Material_type materialType = COLOR;
+
 	void render();
 
-	void setProgram(Program& program);
+	void applyColor();
+	void applyRandomColors();
+	void applyColorsFromPositions();
+
+	void addProgram(Program* program);
+	void setTexture(TextureLoader* texture);
 
 	void printPositions() const;
 	void printIndices() const;
@@ -35,7 +59,8 @@ private:
 	unsigned int _positionBuffer, _colorBuffer, _textureCoordsBuffer;
 	unsigned int _vao, _ibo;
 	const int VERTEX_NUMBER, NB_OF_VERTEX_TO_DRAW;
-	Program _program;
+	std::vector<Program*> _programs;
+	TextureLoader* _texture = NULL;
 
 	void InitPositions(std::vector<float> positions);
 	void InitColors(std::vector<float> colors);

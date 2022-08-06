@@ -11,17 +11,11 @@ Object::Object(ObjectLoader objectLoader)
 	std::vector<unsigned int> indices = objectLoader.getIndices();
 	std::vector<float> textureCoords = objectLoader.getTextureCoords();
 
-	std::cout << "Started object init" << std::endl;
 	InitPositions(positions);
-	std::cout << "Positions OK" << std::endl;
 	InitColors(positions);
-	std::cout << "Colors OK" << std::endl;
 	InitTextureCoords(textureCoords);
-	std::cout << "Texture coords OK" << std::endl;
 	InitIndices(indices);
-	std::cout << "Indices OK" << std::endl;
 	InitVao();
-	std::cout << "VAO OK" << std::endl;
 }
 
 Object::Object(std::vector<float> positions, std::vector<float> colors, std::vector<float> textureCoords, std::vector<unsigned int> indices)
@@ -31,17 +25,11 @@ Object::Object(std::vector<float> positions, std::vector<float> colors, std::vec
 	rotation = glm::vec3(1.0f);
 	scale = glm::vec3(1.0f);
 
-	std::cout << "Started object init" << std::endl;
 	InitPositions(positions);
-	std::cout << "Positions OK" << std::endl;
 	InitColors(colors);
-	std::cout << "Colors OK" << std::endl;
 	InitTextureCoords(textureCoords);
-	std::cout << "Texture coords OK" << std::endl;
 	InitIndices(indices);
-	std::cout << "Indices OK" << std::endl;
 	InitVao();
-	std::cout << "VAO OK" << std::endl;
 }
 
 void Object::InitPositions(std::vector<float> positions)
@@ -56,7 +44,17 @@ void Object::InitPositions(std::vector<float> positions)
 
 void Object::InitColors(std::vector<float> colors)
 {
-	this->_colors = colors;
+	std::vector<float>colorVector;
+
+	for (int i = 0; i < colors.size(); i += 3)
+	{
+		colorVector.push_back(colors[i]);
+		colorVector.push_back(colors[i + 1]);
+		colorVector.push_back(colors[i + 2]);
+		colorVector.push_back(1.0f);
+	}
+	this->_colors = colorVector;
+	applyColorsFromPositions();
 
 	glGenBuffers(1, &_colorBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, _colorBuffer);
@@ -114,33 +112,96 @@ void Object::InitTextureCoords(std::vector<float> textureCoords)
 
 void Object::render()
 {
-	_program.useProgram();
+	if (visible == false)
+		return;
+
+	if (materialType == Material_type::TEXTURE && _textureCoords.size() == 0)
+		materialType = Material_type::COLOR;
+
+	_programs[materialType]->useProgram();
 	
 	glm::mat4 transform = glm::mat4(1.0f);
-	int transformUniform = glGetUniformLocation(_program.getProgramID(), "transform");
+	int transformUniform = glGetUniformLocation(_programs[materialType]->getProgramID(), "transform");
 
 
 	transform = glm::translate(transform, this->translation);
-	transform = glm::scale(transform, this->scale);
 
 	transform = glm::rotate(transform, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
 	transform = glm::rotate(transform, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
 	transform = glm::rotate(transform, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 
+	transform = glm::scale(transform, this->scale);
 	glUniformMatrix4fv(transformUniform, 1, GL_FALSE, glm::value_ptr(transform));
 
 	glBindVertexArray(this->_vao);
 
+	if (materialType == Material_type::TEXTURE && _texture != NULL)
+		_texture->activeTexture(*_programs[materialType], GL_TEXTURE0);
+
 	glPointSize(10.0f);
-	//glDrawElements(GL_POINTS, NB_OF_VERTEX_TO_DRAW, GL_UNSIGNED_INT, 0);
-	//glDrawElements(GL_LINES, NB_OF_VERTEX_TO_DRAW, GL_UNSIGNED_INT, 0);
-	glDrawElements(GL_TRIANGLES, NB_OF_VERTEX_TO_DRAW, GL_UNSIGNED_INT, 0);
-	
+	if (renderMode == Drawing_mode::TRIANGLES)
+		glDrawElements(GL_TRIANGLES, NB_OF_VERTEX_TO_DRAW, GL_UNSIGNED_INT, 0);
+	else if (renderMode == Drawing_mode::POINTS)
+		glDrawElements(GL_POINTS, NB_OF_VERTEX_TO_DRAW, GL_UNSIGNED_INT, 0);
+	else if (renderMode == Drawing_mode::WIREFRAME)
+		glDrawElements(GL_LINES, NB_OF_VERTEX_TO_DRAW, GL_UNSIGNED_INT, 0);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Object::setProgram(Program& program)
+void Object::addProgram(Program* program)
 {
-	this->_program = program;
+	_programs.push_back(program);
+}
+
+void Object::applyColor()
+{
+	for (int i = 0; i < _positions.size(); i += 3)
+	{
+		_colors[i] = color.r;
+		_colors[i + 1] = color.g;
+		_colors[i + 2] = color.b;
+		_colors[i + 3] = 1.0f;
+	}
+
+	glBindVertexArray(this->_vao);
+	glBindBuffer(GL_ARRAY_BUFFER, _colorBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _colors.size(), &_colors[0], GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void Object::applyColorsFromPositions()
+{
+	for (int i = 0; i < _positions.size(); i += 3)
+	{
+		_colors[i] = _positions[i];
+		_colors[i + 1] = _positions[i + 1];
+		_colors[i + 2] = _positions[i + 2];
+		_colors[i + 3] = 1.0f;
+	}
+
+	glBindVertexArray(this->_vao);
+	glBindBuffer(GL_ARRAY_BUFFER, _colorBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _colors.size(), &_colors[0], GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void Object::applyRandomColors()
+{
+	srand(time(NULL));
+
+	for (int i = 0; i < _positions.size(); i += 3)
+	{
+		_colors[i] = static_cast<float>(rand() % 255) / 255.0f;
+		_colors[i + 1] = static_cast<float>(rand() % 255) / 255.0f;
+		_colors[i + 2] = static_cast<float>(rand() % 255) / 255.0f;
+		_colors[i + 3] = 1.0f;
+	}
+
+	glBindVertexArray(this->_vao);
+	glBindBuffer(GL_ARRAY_BUFFER, _colorBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _colors.size(), &_colors[0], GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void Object::printPositions() const
@@ -177,4 +238,10 @@ void Object::printIndices() const
 		std::cout << std::endl;
 	}
 }
+
+void Object::setTexture(TextureLoader* texture)
+{
+	this->_texture = texture;
+}
+
 

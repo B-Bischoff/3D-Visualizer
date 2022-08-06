@@ -19,22 +19,25 @@ private:
 
 	bool _firstMouseUse = true;
 	float _lastMouseX = 0, _lastMouseY = 0;
+	float _scrollX = 0, _scrollY = 0;
+
 
 	void calculateDeltaTime();
 	void processObjectInput();
 	void processCameraInput();
-	void processCameraKeyboard();
 	void processCameraMouse();
+	void processCameraScroll();
+
 
 public:
 	Input();
 	Input(GLFWwindow* window, Camera* camera, Object** object);
 	Input(Object** object);
 
+	void InitCallbacks();
 	void processInput();
 
 	void setCamera(Camera* camera);
 	void setWindow(GLFWwindow* window);
-
 };
 

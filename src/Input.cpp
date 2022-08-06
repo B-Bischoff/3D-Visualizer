@@ -1,5 +1,9 @@
 #include "Input.hpp"
 
+float g_scrollX, g_scrollY;
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+
 Input::Input()
 	: _object(NULL), _camera(NULL), _window(NULL)
 {
@@ -18,8 +22,29 @@ Input::Input(Object** object)
 
 }
 
+void Input::InitCallbacks()
+{
+	glfwSetScrollCallback(_window, scroll_callback);
+}
+
 void Input::processInput()
 {
+	_scrollX = g_scrollX;
+	_scrollY = g_scrollY;
+	g_scrollX = 0;
+	g_scrollY = 0;
+
+	if (glfwGetMouseButton(_window, GLFW_MOUSE_BUTTON_LEFT) || glfwGetMouseButton(_window, GLFW_MOUSE_BUTTON_RIGHT) || glfwGetMouseButton(_window, GLFW_MOUSE_BUTTON_MIDDLE))
+	{
+		glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	}
+	else
+	{
+		glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	}
+
+
+	//glfwSetInputMode(_window, GLFW_STICKY_KEYS, GL_TRUE);
 	calculateDeltaTime();
 	processCameraInput();
 	processObjectInput();
@@ -34,24 +59,8 @@ void Input::calculateDeltaTime()
 
 void Input::processCameraInput()
 {
-	processCameraKeyboard();
 	processCameraMouse();
-}
-
-void Input::processCameraKeyboard()
-{
-	if (glfwGetKey(_window, GLFW_KEY_W) == GLFW_PRESS)
-        _camera->processKeyboard(FORWARD, _deltaTime);
-    if (glfwGetKey(_window, GLFW_KEY_S) == GLFW_PRESS)
-        _camera->processKeyboard(BACKWARD, _deltaTime);
-    if (glfwGetKey(_window, GLFW_KEY_A) == GLFW_PRESS)
-        _camera->processKeyboard(LEFT, _deltaTime);
-    if (glfwGetKey(_window, GLFW_KEY_D) == GLFW_PRESS)
-        _camera->processKeyboard(RIGHT, _deltaTime);
-    if (glfwGetKey(_window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        _camera->processKeyboard(UP, _deltaTime);
-	if (glfwGetKey(_window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-		_camera->processKeyboard(DOWN, _deltaTime);
+	processCameraScroll();
 }
 
 void Input::processCameraMouse()
@@ -70,22 +79,26 @@ void Input::processCameraMouse()
     }
 
     float xoffset = xpos - _lastMouseX;
-    float yoffset = _lastMouseY - ypos; // reversed since y-coordinates go from bottom to top
+    float yoffset = _lastMouseY - ypos; // reversed since y-coordinates goes from bottom to top
 
     _lastMouseX = xpos;
     _lastMouseY = ypos;
 
-    _camera->processMouseMovement(xoffset, yoffset);
+	if (glfwGetMouseButton(_window, GLFW_MOUSE_BUTTON_MIDDLE))
+		_camera->processRotations(-xoffset * _deltaTime, yoffset * _deltaTime);
 
-	//glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	//processInput(_window, camera, 1.0f / ImGui::GetIO().Framerate);
+	if (glfwGetMouseButton(_window, GLFW_MOUSE_BUTTON_RIGHT))
+		_camera->processTranslations(xoffset * _deltaTime, -yoffset * _deltaTime);
 
+}
+
+void Input::processCameraScroll()
+{
+	_camera->processZoom(_scrollY);
 }
 
 void Input::processObjectInput()
 {
-	glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-	
 	if (glfwGetKey(_window, GLFW_KEY_W) == GLFW_PRESS)
 		(*_object)->rotation.x += 1;
 	if (glfwGetKey(_window, GLFW_KEY_S) == GLFW_PRESS)
@@ -122,4 +135,10 @@ void Input::setCamera(Camera* camera)
 void Input::setWindow(GLFWwindow* window)
 {
 	this->_window = window;
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	g_scrollX = xoffset;
+	g_scrollY = yoffset;
 }

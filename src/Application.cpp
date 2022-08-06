@@ -2,9 +2,7 @@
 
 const int WIN_HEIGHT = 1080;
 const int WIN_WIDTH = 1920;
-float lastX = WIN_WIDTH / 2.0f;
-float lastY = WIN_HEIGHT / 2.0f;
-bool firstMouse = true;
+
 
 GLFWwindow* Init(const int WIN_WIDTH, const int WIN_HEIGHT)
 {
@@ -53,7 +51,7 @@ GLFWwindow* Init(const int WIN_WIDTH, const int WIN_HEIGHT)
 void setViewAndProjectionMatrix(Camera& camera, Program& program)
 {	
 	program.useProgram();
-	glm::mat4 projection = glm::perspective(glm::radians(camera.zoom), (float)WIN_WIDTH / (float)WIN_HEIGHT, 0.1f, 100.0f);
+	glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)WIN_WIDTH / (float)WIN_HEIGHT, 0.1f, 500.0f);
 	program.useProgram();
 	program.setMat4("projection", projection);
 	glm::mat4 view = camera.getViewMatrix();
@@ -61,7 +59,7 @@ void setViewAndProjectionMatrix(Camera& camera, Program& program)
 }
 
 Application::Application(const int winWidth, const int winHeight)
-	: WIN_WIDTH(winWidth), WIN_HEIGHT(winHeight)
+	: WIN_WIDTH(winWidth), WIN_HEIGHT(winHeight), _ui(winWidth, winHeight)
 {
 	GlfwInit();
 	WindowInit();
@@ -70,39 +68,60 @@ Application::Application(const int winWidth, const int winHeight)
 
 	SetInputMode();
 
+	glEnable(GL_DEPTH_TEST);
+	_camera = new Camera(glm::vec3(0.0f, 0.0f, 20.0f));
+	_program.push_back(new Program("src/shaders/shader.vert", "src/shaders/shaderTexture.frag"));
+	_program.push_back(new Program("src/shaders/shader.vert", "src/shaders/shaderColor.frag"));
 
-	//glfwSetCursorPosCallback(window, mouse_callback);
-	//glfwSetScrollCallback(window, scroll_callback);
-
-
-	_camera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
-	_program.push_back(new Program("src/shaders/shader.vert", "src/shaders/shader.frag"));
-
-	ObjectLoader ol("objs/cube.obj");
-
-	//Object* obj = new Object(object.getPositions(), object.getPositions(), object.getTextureCoords(), object.getIndices());
 	Object* obj = new Object(ObjectLoader("objs/Bunny.obj"));
-	obj->setProgram(*_program[TEXTURE_SHADER]);
+	obj->addProgram(_program[COLOR_SHADER]);
+	obj->addProgram(_program[TEXTURE_SHADER]);
 	_objects.push_back(obj);
 
-	//Object* obj1 = new Object(object.getPositions(), object.getPositions(), object.getTextureCoords(), object.getIndices());
-	Object* obj1 = new Object(ol);
-	obj1->setProgram(*_program[TEXTURE_SHADER]);
+	/*
+	Object* obj2 = new Object(ObjectLoader("E:/Prog/Projets/OpenGL/Discover/Discover/Discover/objs/42.obj"));
+	obj2->addProgram(*_program[COLOR_SHADER]);
+	obj2->addProgram(*_program[TEXTURE_SHADER]);
+	_objects.push_back(obj2);
+	*/
+	Object* obj1 = new Object(ObjectLoader("objs/Fox.obj"));
+	obj1->addProgram(_program[COLOR_SHADER]);
+	obj1->addProgram(_program[TEXTURE_SHADER]);
+	obj1->renderMode = Drawing_mode::WIREFRAME;
+	obj1->translation = glm::vec3(3, 0, 0);
 	_objects.push_back(obj1);
 
+	// Input manager
 	_input = Input(&_selectedObject);
 	_input.setCamera(_camera);
 	_input.setWindow(_window);
-	
+	_input.InitCallbacks();
+
+	// User interface
+	_ui.setCamera(_camera);
+	_ui.setObject(&_selectedObject);
+	_ui.setObjectList(&_objects);
+	_ui.setTexturesList(&_textures);
+	_ui.setObjectToInstantiate(&_objectToInstantiate);
+
+
+	// Background grid
+	_backgroundGrid = new Grid();
+	_backgroundGrid->setProgram(_program[COLOR_SHADER]);
+	_backgroundGrid->setProgram(_program[TEXTURE_SHADER]);
+
 }
 
 Application::~Application()
 {
 	delete _camera;
+	delete _backgroundGrid;
 	for (int i = 0; i < _program.size(); i++)
 		delete _program[i];
 	for (int i = 0; i < _objects.size(); i++)
 		delete _objects[i];
+	for (int i = 0; i < _textures.size(); i++)
+		delete _textures[i];
 }
 
 void Application::GlfwInit()
@@ -171,27 +190,23 @@ void Application::ImGuiInit()
 void Application::Loop()
 {
 	_program[TEXTURE_SHADER]->useProgram();
-
-
-	_program[TEXTURE_SHADER]->useProgram();
-
 	_selectedObject = _objects[0];
 
 	int Selected = 0;
 
 	bool cameraMode = false;
-	TextureLoader texture("textures/156.jpg"); // Attach it to object ?
+	//TextureLoader texture("textures/154.jpg"); // Attach it to object ?
+	TextureLoader textureGrid("textures/grid.png"); // Attach it to object ?
 
-	glEnable(GL_DEPTH_TEST);
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 	while (glfwGetKey(_window, GLFW_KEY_ESCAPE) != GLFW_PRESS)
 	{
 		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
+		if (_objectToInstantiate.empty() == false)
+			instantiateObject();
+
+		_ui.createNewFrame();
 
 		_input.processInput();
 
@@ -213,7 +228,7 @@ void Application::Loop()
 
 		if (cameraMode == false)
 		{
-			glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	glfwSetInputMode(_window, GLFW_STICKY_KEYS, GL_FALSE);
 
 			if (glfwGetKey(_window, GLFW_KEY_SPACE) == GLFW_PRESS)
 			{
@@ -221,64 +236,83 @@ void Application::Loop()
 					Selected = 1;
 				else
 					Selected = 0;
-				_selectedObject = _objects[Selected];
+	//			_selectedObject = _objects[Selected];
 
 			}
 		}
 
 		setViewAndProjectionMatrix(*_camera, *_program[TEXTURE_SHADER]);
-
-		texture.activeTexture(*_program[TEXTURE_SHADER], GL_TEXTURE0);
-
-		// UI
-		{
-			static float f = 0.0f;
-			static int counter = 0;
-
-			ImGui::Begin("Model properties:");                          // Create a window called "Hello, world!" and append into it.
-
-			ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-
-			ImGui::Text("Rotation");               // Display some text (you can use a format strings too)
-			ImGui::SliderFloat("X rotation", &_selectedObject->rotation.x, 0.0f, 360.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-			ImGui::SliderFloat("Y rotation", &_selectedObject->rotation.y, 0.0f, 360.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-			ImGui::SliderFloat("Z rotation", &_selectedObject->rotation.z, 0.0f, 360.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-
-			ImGui::Text("Scale");               // Display some text (you can use a format strings too)
-			ImGui::SliderFloat("X scale", &_selectedObject->scale.x, 0.0f, 2.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-			ImGui::SliderFloat("Y scale", &_selectedObject->scale.y, 0.0f, 2.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-			ImGui::SliderFloat("Z scale", &_selectedObject->scale.z, 0.0f, 2.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+		setViewAndProjectionMatrix(*_camera, *_program[COLOR_SHADER]);
 
 
+		_ui.update();
 
-
-			ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-			if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-				counter++;
-			ImGui::SameLine();
-			ImGui::Text("counter = %d", counter);
-
-			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-			ImGui::End();
-		}
-
+		//texture.activeTexture(*_program[COLOR_SHADER], GL_TEXTURE0);
 		for (int i = 0; i < _objects.size(); i++)
 			_objects[i]->render();
+
+		textureGrid.activeTexture(*_program[TEXTURE_SHADER], GL_TEXTURE0);
+		_backgroundGrid->render();
 
 		glBindVertexArray(0);
 		glUseProgram(0);
 
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		_ui.renderUI();
 
 		glfwSwapBuffers(_window);
 		glfwPollEvents();
 	}
 
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();
+	_ui.shutdown();
 
 	glfwTerminate();
 }
+
+void Application::instantiateObject()
+{
+	std::string logMessage;
+
+	char buf[26];
+	time_t ltime;
+	time(&ltime);
+	ctime_s(buf, 26, &ltime);
+	buf[20] = '\0'; // Erase year
+
+	logMessage += buf + 11; // Skip date
+
+	try
+	{
+		if (_objectToInstantiate.find(".obj", _objectToInstantiate.length() - 4) != std::string::npos)
+		{
+			ObjectLoader objectLoader(_objectToInstantiate);
+			if (objectLoader.getIncoherentFaceIndex())
+				logMessage += "Warning, object has incoherent face index\n";
+			Object* obj = new Object(objectLoader);
+			obj->addProgram(_program[COLOR_SHADER]);
+			obj->addProgram(_program[TEXTURE_SHADER]);
+			_objects.push_back(obj);
+			logMessage += "Successfuly loaded object: " + _objectToInstantiate + "\n";
+			logMessage += "Vertex number: " + std::to_string((int)objectLoader.getVertexNumber()) + "\n";
+			logMessage += "Face number: " + std::to_string((int)objectLoader.getFaceNumber()) + "\n";
+			logMessage += "Texture coordinate: " + std::to_string((int)objectLoader.getTextureCoordinateNumber()) + "\n";
+		}
+		else
+		{
+			TextureLoader* texture = new TextureLoader(_objectToInstantiate);
+			_textures.push_back(texture);
+			logMessage += "Successfuly loaded texture: " + _objectToInstantiate;
+		}
+	}
+	catch (std::invalid_argument& e)
+	{
+		logMessage += e.what();
+		logMessage += " ";
+		logMessage += _objectToInstantiate;
+	}
+	std::cout << _textures.size() << std::endl;
+
+	_ui.addToLogs(logMessage);
+	_objectToInstantiate.clear();
+}
+
+

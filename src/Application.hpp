@@ -8,10 +8,12 @@
 #include <sstream>
 #include <stdio.h>
 #include <fstream>
+#include <ctime>
+#include <chrono>
+#include <cmath>
 
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
-
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
@@ -23,9 +25,12 @@
 #include "Object.hpp"
 #include "ObjectLoader.hpp"
 #include "Camera.hpp"
+#include "UserInterface.hpp"
+#include "Grid.hpp"
 
 enum ApplicationShader {
 	TEXTURE_SHADER,
+	COLOR_SHADER,
 };
 
 class Application {
@@ -36,21 +41,29 @@ private:
 
 	Input _input;
 	Camera* _camera;
+	UserInterface _ui;
+
 	std::vector<Program*> _program;
 	std::vector<Object*> _objects;
+	std::vector<TextureLoader*> _textures;
 	Object* _selectedObject;
+	Grid* _backgroundGrid;
+
+	std::string _objectToInstantiate;
+
+	std::time_t endTime;
 
 	// Init
 	void GlfwInit();
 	void WindowInit();
 	void GlewInit();
 	void ImGuiInit();
-	
 	void SetInputMode();
+
+	void instantiateObject();
 
 
 public:
-
 	Application(const int winWidth, const int winHeight);
 	~Application();
 

@@ -3,8 +3,8 @@
 TextureLoader::TextureLoader(std::string textureFilePath)
 {
     generateTexture();
-    setTextureWrapping(GL_REPEAT, GL_REPEAT);
-    setTextureFiltering(GL_REPEAT, GL_REPEAT);
+    setTextureWrapping(GL_REPEAT, GL_LINEAR);
+    setTextureFiltering(GL_LINEAR, GL_LINEAR);
     flipTextureVertically(true);
     loadTexture(textureFilePath);
 }
@@ -17,14 +17,14 @@ void TextureLoader::generateTexture()
 
 void TextureLoader::setTextureWrapping(GLint sParam, GLint tParam) const
 {
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, sParam);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, tParam);
 }
 
 void TextureLoader::setTextureFiltering(GLint sParam, GLint tParam) const
 {
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, sParam);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, tParam);
 }
 
 void TextureLoader::flipTextureVertically(bool value) const
@@ -42,7 +42,7 @@ void TextureLoader::loadTexture(std::string textureFilePath)
     }
     else
     {
-        std::cout << "Failed to load texture: " << textureFilePath << std::endl;
+		throw std::invalid_argument("[TextureLoader] Can't open file");
     }
     stbi_image_free(data);
 }

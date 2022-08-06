@@ -1,81 +1,63 @@
 #include "Camera.hpp"
 
-Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
-	: front(glm::vec3(0.0f, 0.0f, -1.0f)), movementSpeed(SPEED), mouseSensitivity(SENSITIVITY), zoom(ZOOM)
+Camera::Camera(glm::vec3 position, glm::vec3 up)
+	: front(glm::vec3(0.0f, 0.0f, -1.0f))
 {
 	this->position = position;
 	this->worldUp = up;
-	this->yaw = yaw;
-	this->pitch = pitch;
-	updateCameraVectors();
-}
-
-Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch)
-	: front(glm::vec3(0.0f, 0.0f, -1.0f)), movementSpeed(SPEED), mouseSensitivity(SENSITIVITY), zoom(ZOOM)
-{
-	this->position = glm::vec3(posX, posY, posZ);
-	this->worldUp = glm::vec3(upX, upY, upZ);
-	this->yaw = yaw;
-	this->pitch = pitch;
 	updateCameraVectors();
 }
 
 glm::mat4 Camera::getViewMatrix() const
 {
-	return glm::lookAt(position, position + front, up);
+	return glm::lookAt(position, targetPos, up);
 }
 
-void Camera::processKeyboard(Camera_Movement direction, float deltaTime)
+void Camera::processZoom(float yoffset)
 {
-	float velocity = movementSpeed * deltaTime;
-	switch (direction)
-	{
-		case FORWARD: position += front * velocity; break;
-		case BACKWARD: position -= front * velocity; break;
-		case LEFT: position -= right * velocity; break;
-		case RIGHT: position += right * velocity; break;
-		case UP: position += up * velocity; break;
-		case DOWN: position -= up * velocity; break;
-	}
-}
+	const float value = zoomSpeed * yoffset; // offset is inverted to invert the scroll
 
-void Camera::processMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch)
-{
-	xoffset *= mouseSensitivity;
-	yoffset *= mouseSensitivity;
-
-	yaw += xoffset;
-	pitch += yoffset;
-
-	if (constrainPitch)
-	{
-		if (pitch > 89.0f)
-			pitch = 89.0f;
-		if (pitch < -89.0f)
-			pitch = -89.0f;
-	}
+	position = position + ((targetPos - position) * value);
 
 	updateCameraVectors();
 }
 
-void Camera::processMouseScroll(float yoffset)
+void Camera::processTranslations(float xVelocity, float yVelocity)
 {
-	zoom -= (float)yoffset;
+	xVelocity *= translationSpeed;
+	yVelocity *= translationSpeed;
 
-	if (zoom < 1.0f)
-		zoom = 1.0f;
-	if (zoom > 45.0f)
-		zoom = 45.0f;
+	position += right * xVelocity;
+	position += up * yVelocity;
+
+	targetPos += right * xVelocity;
+	targetPos += up * yVelocity;
+
+	updateCameraVectors();
+}
+
+void Camera::processRotations(float xAngle, float yAngle) // Process camera rotation
+{
+	glm::vec4 pos(position.x, position.y, position.z, 1.0f);
+	glm::vec4 pivot(targetPos.x, targetPos.y, targetPos.z, 1.0f);
+
+	glm::mat4x4 rotationMatrixX(1.0f);
+	rotationMatrixX = glm::rotate(rotationMatrixX, glm::radians(xAngle * rotationSpeed), up);
+	pos = (rotationMatrixX * (pos - pivot)) + pivot;
+
+	glm::mat4x4 rotationMatrixY(1.0f);
+	rotationMatrixY = glm::rotate(rotationMatrixY, glm::radians(yAngle * rotationSpeed), -right);
+
+	glm::vec3 finalPos = (rotationMatrixY * (pos - pivot)) + pivot;
+	position = finalPos;
+
+	updateCameraVectors();
 }
 
 void Camera::updateCameraVectors()
 {
-	glm::vec3 front;
-	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-	front.y = sin(glm::radians(pitch));
-	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-	this->front = glm::normalize(front);
-
+	const glm::mat4 inverted = glm::inverse(getViewMatrix());
+	front = glm::normalize(glm::vec3(inverted[2]));
 	right = glm::normalize(glm::cross(front, worldUp));
 	up = glm::normalize(glm::cross(right, front));
 }

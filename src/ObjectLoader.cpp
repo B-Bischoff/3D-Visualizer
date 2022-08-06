@@ -8,7 +8,11 @@ ObjectLoader::ObjectLoader(std::string objectPathFile)
 
 	this->_objectFilecontent = ReadObjectFileContent(objectPathFile);
 	ParseFileContent();
+
+	if (!_positions.size() || !_indices.size())
+		throw std::invalid_argument("[ObjectLoader] Unreacognized file content");
 }
+
 
 std::string ObjectLoader::ReadObjectFileContent(std::string objectPathFile)
 {
@@ -24,9 +28,8 @@ std::string ObjectLoader::ReadObjectFileContent(std::string objectPathFile)
 	}
 	else
 	{
-		std::cerr << "[ObjectLoader] Can't open file: " << objectPathFile << std::endl;
-		std::cin.get();
-		exit(1);
+		//std::cerr << "[ObjectLoader] Can't open file: " << objectPathFile << std::endl;
+		throw std::invalid_argument("[ObjectLoader] Can't open file");
 	}
 	return fileContent;
 }
@@ -66,6 +69,7 @@ void ObjectLoader::ParsePositions(std::stringstream& ss, std::string& temp)
 		ss >> pos;
 		this->_positions.push_back(pos);
 	}
+	_vertexNumber++;
 }
 
 void ObjectLoader::ParseTextureCoords(std::stringstream& ss, std::string& temp)
@@ -77,27 +81,33 @@ void ObjectLoader::ParseTextureCoords(std::stringstream& ss, std::string& temp)
 		ss >> coord;
 		this->_textureCoords.push_back(coord);
 	}
+		_textureCoordinateNumber++;
 }
 
 void ObjectLoader::ParseIndices(std::stringstream& ss, std::string& temp)
 {
 	temp = "";
-	std::vector<int> indicesList;
-	int currentIndice = 0;
+	std::vector<unsigned int> indicesList;
+	unsigned int currentIndice = 0;
 	while (temp != "f" && !ss.eof())
 	{
 		ss >> temp;
-		if (temp == "f")
+		if (temp == "f" || ss.eof())
 			break;
 			
-		indicesList.push_back(atoi(temp.c_str()) - 1);
+		indicesList.push_back(atof(temp.c_str()) - 1);
 		if (currentIndice > 1)
 		{
 			this->_indices.push_back(indicesList[0]);
+			if (indicesList[currentIndice - 1] >= _positions.size() - 1)
+				_warningIncoherentFaceIndex = true;
 			this->_indices.push_back(indicesList[currentIndice - 1]);
+			if (indicesList[currentIndice] >= _positions.size() - 1)
+				_warningIncoherentFaceIndex = true;
 			this->_indices.push_back(indicesList[currentIndice]);
 		}
 		currentIndice++;
+		_faceNumber++;
 	}
 }
 
@@ -115,3 +125,24 @@ std::vector<unsigned int> ObjectLoader::getIndices() const
 {
 	return _indices;
 }
+
+double ObjectLoader::getVertexNumber() const
+{
+	return _vertexNumber;
+}
+
+double ObjectLoader::getFaceNumber() const
+{
+	return _faceNumber;
+}
+
+double ObjectLoader::getTextureCoordinateNumber() const
+{
+	return _textureCoordinateNumber;
+}
+
+bool ObjectLoader::getIncoherentFaceIndex() const
+{
+	return _warningIncoherentFaceIndex;
+}
+

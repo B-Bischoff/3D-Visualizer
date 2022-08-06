@@ -23,7 +23,7 @@ GLFWwindow* Init(const int WIN_WIDTH, const int WIN_HEIGHT)
 	// Open a window and create its OpenGL context
 	GLFWwindow* window = glfwCreateWindow( WIN_WIDTH, WIN_HEIGHT, "Tutorial 04 - Colored Cube", NULL, NULL);
 	if( window == NULL ){
-		std::cerr << "Failed to open GLWD window" << std::endl;
+		std::cerr << "Failed to open GLWF window" << std::endl;
 		std::cin.get();
 		glfwTerminate();
 		exit(1);
@@ -272,13 +272,15 @@ void Application::instantiateObject()
 {
 	std::string logMessage;
 
+	/*
 	char buf[26];
 	time_t ltime;
 	time(&ltime);
-	ctime_s(buf, 26, &ltime);
+	ctime_r(buf, 26, &ltime);
 	buf[20] = '\0'; // Erase year
 
 	logMessage += buf + 11; // Skip date
+	*/
 
 	try
 	{

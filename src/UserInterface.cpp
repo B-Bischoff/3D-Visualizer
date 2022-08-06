@@ -1,5 +1,4 @@
 #include "UserInterface.hpp"
-#include "imgui/imgui.h"
 
 UserInterface::UserInterface(const int winWidth, const int winHeight)
 	: WIN_WIDTH(winWidth), WIN_HEIGHT(winHeight)
@@ -83,7 +82,7 @@ void UserInterface::updateObjetMenu()
 		for (int i = 0; i < _textureList->size(); i++)
 		{
 			char buf[32];
-			sprintf_s(buf, "Texture %d", i);
+			snprintf(buf, 32, "Texture %d", i);
 			if (ImGui::Selectable(buf, textureSelected == i))
 				textureSelected = i;
 		}
@@ -111,12 +110,12 @@ void UserInterface::updateHierarchy()
 		char buf[32];
 		Object* obj = (*_objectList)[i];
 	
-		sprintf_s(buf, "Show/Hide %d", i);
+		snprintf(buf, 32, "Show/Hide %d", i);
 		ImGui::Checkbox(buf, &obj->visible);
 
 		ImGui::SameLine();
 		
-		sprintf_s(buf, "Object %d", i);
+		snprintf(buf, 32, "Object %d", i);
 		if (ImGui::Selectable(buf, hierarchySelected == i))
 			hierarchySelected = i;
 	}

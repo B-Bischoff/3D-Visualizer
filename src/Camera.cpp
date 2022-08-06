@@ -5,6 +5,8 @@ Camera::Camera(glm::vec3 position, glm::vec3 up)
 {
 	this->position = position;
 	this->worldUp = up;
+	this->up = up;
+
 	updateCameraVectors();
 }
 

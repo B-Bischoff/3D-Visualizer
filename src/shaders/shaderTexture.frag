@@ -1,6 +1,6 @@
 #version 330 core
 
-flat in vec3 fragmentColor;
+smooth in vec3 fragmentColor;
 in vec2 fragmentTextCoord;
 
 uniform sampler2D myTexture;

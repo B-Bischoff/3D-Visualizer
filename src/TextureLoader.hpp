@@ -1,6 +1,6 @@
 #pragma once
 
-#include "stb/stb_image.h"
+#include "vendor/stb/stb_image.h"
 #include <GL/glew.h>
 #include <iostream>
 #include <exception>

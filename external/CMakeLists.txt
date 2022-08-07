@@ -20,6 +20,13 @@ set(OPENGL_LIBRARY
 	${CMAKE_DL_LIBS}
 	${GLFW_LIBRARIES}
 )
+else()
+set(OPENGL_LIBRARY
+	${OPENGL_LIBRARY}
+	${CMAKE_DL_LIBS}
+	${GLFW_LIBRARIES}
+
+)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 ### GLEW ###
@@ -31,7 +38,7 @@ set(GLEW_SOURCE
 set(GLEW_HEADERS
 )
 
-add_library( GLEW_220 STATIC
+add_library(GLEW_220 STATIC
 	${GLEW_SOURCE}
 	${GLEW_INCLUDE}
 )
@@ -39,4 +46,6 @@ add_library( GLEW_220 STATIC
 target_link_libraries(GLEW_220
 	${OPENGL_LIBRARY}
 	${EXTRA_LIBS}
+	${CMAKE_SOURCE_DIR}/external/glew-2.2.0/lib/Release/x64/glew32s.lib
 )
+

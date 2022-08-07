@@ -70,26 +70,34 @@ Application::Application(const int winWidth, const int winHeight)
 
 	glEnable(GL_DEPTH_TEST);
 	_camera = new Camera(glm::vec3(0.0f, 0.0f, 20.0f));
-	_program.push_back(new Program("src/shaders/shader.vert", "src/shaders/shaderTexture.frag"));
-	_program.push_back(new Program("src/shaders/shader.vert", "src/shaders/shaderColor.frag"));
+	_program.push_back(new Program("./../../../src/shaders/shader.vert", "../../../src/shaders/shaderTexture.frag"));
+	_program.push_back(new Program("./../../../src/shaders/shader.vert", "../../../src/shaders/shaderColor.frag"));
 
-	Object* obj = new Object(ObjectLoader("objs/Bunny.obj"));
-	obj->addProgram(_program[COLOR_SHADER]);
-	obj->addProgram(_program[TEXTURE_SHADER]);
-	_objects.push_back(obj);
 
-	/*
-	Object* obj2 = new Object(ObjectLoader("E:/Prog/Projets/OpenGL/Discover/Discover/Discover/objs/42.obj"));
-	obj2->addProgram(*_program[COLOR_SHADER]);
-	obj2->addProgram(*_program[TEXTURE_SHADER]);
-	_objects.push_back(obj2);
-	*/
-	Object* obj1 = new Object(ObjectLoader("objs/Fox.obj"));
-	obj1->addProgram(_program[COLOR_SHADER]);
-	obj1->addProgram(_program[TEXTURE_SHADER]);
-	obj1->renderMode = Drawing_mode::WIREFRAME;
-	obj1->translation = glm::vec3(3, 0, 0);
-	_objects.push_back(obj1);
+	try {
+		Object* obj = new Object(ObjectLoader("../../../objs/Bunny.obj"));
+		obj->addProgram(_program[COLOR_SHADER]);
+		obj->addProgram(_program[TEXTURE_SHADER]);
+		_objects.push_back(obj);
+
+		/*
+		Object* obj2 = new Object(ObjectLoader("E:/Prog/Projets/OpenGL/Discover/Discover/Discover/objs/42.obj"));
+		obj2->addProgram(*_program[COLOR_SHADER]);
+		obj2->addProgram(*_program[TEXTURE_SHADER]);
+		_objects.push_back(obj2);
+		*/
+
+		Object* obj1 = new Object(ObjectLoader("objs/Fox.obj"));
+		obj1->addProgram(_program[COLOR_SHADER]);
+		obj1->addProgram(_program[TEXTURE_SHADER]);
+		obj1->renderMode = Drawing_mode::WIREFRAME;
+		obj1->translation = glm::vec3(3, 0, 0);
+		_objects.push_back(obj1);
+	}
+	catch (std::exception& e)
+	{
+	}
+
 
 	// Input manager
 	_input = Input(&_selectedObject);
@@ -106,10 +114,11 @@ Application::Application(const int winWidth, const int winHeight)
 
 
 	// Background grid
+	/*
 	_backgroundGrid = new Grid();
 	_backgroundGrid->setProgram(_program[COLOR_SHADER]);
 	_backgroundGrid->setProgram(_program[TEXTURE_SHADER]);
-
+	*/
 }
 
 Application::~Application()
@@ -196,7 +205,7 @@ void Application::Loop()
 
 	bool cameraMode = false;
 	//TextureLoader texture("textures/154.jpg"); // Attach it to object ?
-	TextureLoader textureGrid("textures/grid.png"); // Attach it to object ?
+	//TextureLoader textureGrid("textures/grid.png"); // Attach it to object ?
 
 	while (glfwGetKey(_window, GLFW_KEY_ESCAPE) != GLFW_PRESS)
 	{
@@ -251,8 +260,8 @@ void Application::Loop()
 		for (int i = 0; i < _objects.size(); i++)
 			_objects[i]->render();
 
-		textureGrid.activeTexture(*_program[TEXTURE_SHADER], GL_TEXTURE0);
-		_backgroundGrid->render();
+		//textureGrid.activeTexture(*_program[TEXTURE_SHADER], GL_TEXTURE0);
+		//_backgroundGrid->render();
 
 		glBindVertexArray(0);
 		glUseProgram(0);

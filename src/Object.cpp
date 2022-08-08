@@ -147,6 +147,8 @@ void Object::render()
 		glDrawElements(GL_LINES, NB_OF_VERTEX_TO_DRAW, GL_UNSIGNED_INT, 0);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindVertexArray(0);
+	glUseProgram(0);
 }
 
 void Object::addProgram(Program* program)

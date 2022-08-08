@@ -46,6 +46,5 @@ add_library(GLEW_220 STATIC
 target_link_libraries(GLEW_220
 	${OPENGL_LIBRARY}
 	${EXTRA_LIBS}
-	${CMAKE_SOURCE_DIR}/external/glew-2.2.0/lib/Release/x64/glew32s.lib
 )
 

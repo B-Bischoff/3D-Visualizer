@@ -38,9 +38,7 @@ std::string Program::readShaderContent(std::string file)
 	}
 	else
 	{
-		std::cerr << "[Program] Can't open file: " << file << std::endl;
-		std::cin.get();
-		exit(1);
+		throw std::invalid_argument("[Program] Can't open shader " + file);
 	}
 	return fileContent;
 }

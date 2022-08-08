@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <exception>
 
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"

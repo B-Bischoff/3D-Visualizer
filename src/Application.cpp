@@ -70,34 +70,38 @@ Application::Application(const int winWidth, const int winHeight)
 
 	glEnable(GL_DEPTH_TEST);
 	_camera = new Camera(glm::vec3(0.0f, 0.0f, 20.0f));
-	_program.push_back(new Program("./../../../src/shaders/shader.vert", "../../../src/shaders/shaderTexture.frag"));
-	_program.push_back(new Program("./../../../src/shaders/shader.vert", "../../../src/shaders/shaderColor.frag"));
 
+	const std::string rootPath = "./";
+	const std::string visualStudioPath = "../../../"; // Visual studio starts application in "./out/build/x64-Debug"
 
 	try {
-		Object* obj = new Object(ObjectLoader("../../../objs/Bunny.obj"));
+		_program.push_back(new Program(rootPath + "src/shaders/shader.vert", rootPath + "src/shaders/shaderTexture.frag"));
+		_program.push_back(new Program(rootPath + "src/shaders/shader.vert", rootPath + "src/shaders/shaderColor.frag"));
+	}
+	catch (std::exception& e) {}
+	try {
+		_program.push_back(new Program(visualStudioPath + "src/shaders/shader.vert", visualStudioPath + "src/shaders/shaderTexture.frag"));
+		_program.push_back(new Program(visualStudioPath + "src/shaders/shader.vert", visualStudioPath + "src/shaders/shaderColor.frag"));
+	}
+	catch (std::exception& e) {}
+
+
+	Object* obj = NULL;
+	try {
+		obj = new Object(ObjectLoader(rootPath + "objs/Bunny.obj"));
+	}
+	catch (std::exception& e) {}
+	try {
+		obj = new Object(ObjectLoader(visualStudioPath + "objs/Bunny.obj"));
+	}
+	catch (std::exception& e) {}
+
+	if (obj)
+	{
 		obj->addProgram(_program[COLOR_SHADER]);
 		obj->addProgram(_program[TEXTURE_SHADER]);
 		_objects.push_back(obj);
-
-		/*
-		Object* obj2 = new Object(ObjectLoader("E:/Prog/Projets/OpenGL/Discover/Discover/Discover/objs/42.obj"));
-		obj2->addProgram(*_program[COLOR_SHADER]);
-		obj2->addProgram(*_program[TEXTURE_SHADER]);
-		_objects.push_back(obj2);
-		*/
-
-		Object* obj1 = new Object(ObjectLoader("objs/Fox.obj"));
-		obj1->addProgram(_program[COLOR_SHADER]);
-		obj1->addProgram(_program[TEXTURE_SHADER]);
-		obj1->renderMode = Drawing_mode::WIREFRAME;
-		obj1->translation = glm::vec3(3, 0, 0);
-		_objects.push_back(obj1);
 	}
-	catch (std::exception& e)
-	{
-	}
-
 
 	// Input manager
 	_input = Input(&_selectedObject);
@@ -114,11 +118,17 @@ Application::Application(const int winWidth, const int winHeight)
 
 
 	// Background grid
-	/*
 	_backgroundGrid = new Grid();
 	_backgroundGrid->setProgram(_program[COLOR_SHADER]);
 	_backgroundGrid->setProgram(_program[TEXTURE_SHADER]);
-	*/
+	try {
+		_backgroundGrid->setTexture(new TextureLoader(rootPath + "textures/grid.png"));
+	}
+	catch (std::exception& e) {}
+	try {
+		_backgroundGrid->setTexture(new TextureLoader(visualStudioPath + "textures/grid.png"));
+	}
+	catch (std::exception& e) {}
 }
 
 Application::~Application()
@@ -198,14 +208,7 @@ void Application::ImGuiInit()
 
 void Application::Loop()
 {
-	_program[TEXTURE_SHADER]->useProgram();
 	_selectedObject = _objects[0];
-
-	int Selected = 0;
-
-	bool cameraMode = false;
-	//TextureLoader texture("textures/154.jpg"); // Attach it to object ?
-	//TextureLoader textureGrid("textures/grid.png"); // Attach it to object ?
 
 	while (glfwGetKey(_window, GLFW_KEY_ESCAPE) != GLFW_PRESS)
 	{
@@ -219,36 +222,6 @@ void Application::Loop()
 
 		_input.processInput();
 
-		_program[TEXTURE_SHADER]->useProgram();
-
-		{
-			//colors[0] -= 0.005f;
-			//colors[1] -= 0.005f;
-			//_positions[0] -= 0.0005f;
-
-			//glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
-			//glBufferData(GL_ARRAY_BUFFER, _positions.size() * sizeof(float), &_positions, GL_STATIC_DRAW);
-			//glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
-			//glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
-		}
-
-		if (glfwGetKey(_window, GLFW_KEY_C) == GLFW_PRESS)
-			cameraMode = !cameraMode;
-
-		if (cameraMode == false)
-		{
-	glfwSetInputMode(_window, GLFW_STICKY_KEYS, GL_FALSE);
-
-			if (glfwGetKey(_window, GLFW_KEY_SPACE) == GLFW_PRESS)
-			{
-				if (Selected == 0)
-					Selected = 1;
-				else
-					Selected = 0;
-	//			_selectedObject = _objects[Selected];
-
-			}
-		}
 
 		setViewAndProjectionMatrix(*_camera, *_program[TEXTURE_SHADER]);
 		setViewAndProjectionMatrix(*_camera, *_program[COLOR_SHADER]);
@@ -256,12 +229,10 @@ void Application::Loop()
 
 		_ui.update();
 
-		//texture.activeTexture(*_program[COLOR_SHADER], GL_TEXTURE0);
 		for (int i = 0; i < _objects.size(); i++)
 			_objects[i]->render();
 
-		//textureGrid.activeTexture(*_program[TEXTURE_SHADER], GL_TEXTURE0);
-		//_backgroundGrid->render();
+		_backgroundGrid->render();
 
 		glBindVertexArray(0);
 		glUseProgram(0);
@@ -282,6 +253,7 @@ void Application::instantiateObject()
 	std::string logMessage;
 
 	/*
+	// Adapt time to linux functions
 	char buf[26];
 	time_t ltime;
 	time(&ltime);

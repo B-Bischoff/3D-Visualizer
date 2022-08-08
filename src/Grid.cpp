@@ -26,6 +26,11 @@ void Grid::setProgram(Program* program)
 	_grid->addProgram(program);
 }
 
+void Grid::setTexture(TextureLoader* texture)
+{
+	_grid->setTexture(texture);
+}
+
 std::vector<float> Grid::createGridPositions()
 {
 	std::vector<float> positions;

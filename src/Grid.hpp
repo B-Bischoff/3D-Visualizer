@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "Object.hpp"
+#include "TextureLoader.hpp"
 
 class Grid {
 private:
@@ -27,5 +28,6 @@ public:
 	void render();
 
 	void setProgram(Program* program);
+	void setTexture(TextureLoader* texture);
 };
 

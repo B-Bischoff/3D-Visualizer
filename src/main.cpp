@@ -7,5 +7,6 @@ int main(void)
 {
 	Application application(1920, 1080);
 	application.Loop();
-}
 
+	return 0;
+}

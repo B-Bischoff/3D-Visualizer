@@ -210,34 +210,34 @@ void Application::Loop()
 {
 	_selectedObject = _objects[0];
 
-	while (glfwGetKey(_window, GLFW_KEY_ESCAPE) != GLFW_PRESS)
+	while (!glfwWindowShouldClose(_window) && glfwGetKey(_window, GLFW_KEY_ESCAPE) != GLFW_PRESS)
 	{
 		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		if (_objectToInstantiate.empty() == false)
-			instantiateObject();
+		// Update section
+		{
+			if (_objectToInstantiate.empty() == false)
+				instantiateObject();
 
-		_ui.createNewFrame();
+			_input.processInput();
 
-		_input.processInput();
+			setViewAndProjectionMatrix(*_camera, *_program[TEXTURE_SHADER]);
+			setViewAndProjectionMatrix(*_camera, *_program[COLOR_SHADER]);
+			
+			_ui.createNewFrame();
+			_ui.update();
+		}
 
+		// Render section
+		{
+			for (int i = 0; i < _objects.size(); i++)
+				_objects[i]->render();
 
-		setViewAndProjectionMatrix(*_camera, *_program[TEXTURE_SHADER]);
-		setViewAndProjectionMatrix(*_camera, *_program[COLOR_SHADER]);
+			_backgroundGrid->render();
 
-
-		_ui.update();
-
-		for (int i = 0; i < _objects.size(); i++)
-			_objects[i]->render();
-
-		_backgroundGrid->render();
-
-		glBindVertexArray(0);
-		glUseProgram(0);
-
-		_ui.renderUI();
+			_ui.renderUI();
+		}
 
 		glfwSwapBuffers(_window);
 		glfwPollEvents();

@@ -21,13 +21,13 @@ private:
 	float _lastMouseX = 0, _lastMouseY = 0;
 	float _scrollX = 0, _scrollY = 0;
 
-
+	void updateMousePosition();
+	void updateMouseVisibility();
 	void calculateDeltaTime();
-	void processObjectInput();
+
 	void processCameraInput();
 	void processCameraMouse();
 	void processCameraScroll();
-
 
 public:
 	Input();

@@ -101,7 +101,6 @@ void UserInterface::updateHierarchy()
 	ImGuiWindowFlags windowFlag = 0;
 	windowFlag |= ImGuiWindowFlags_NoMove;
 
-
 	ImGui::Begin("Hierarchy:", NULL, windowFlag);
 
 	static int hierarchySelected = -1;

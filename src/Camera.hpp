@@ -32,5 +32,8 @@ public:
 
 private:
 	void updateCameraVectors();
+
+	void clampCameraProperties();
+	float clamp(float nbr, float min, float max);
 };
 

@@ -65,14 +65,25 @@ Application::Application(const int winWidth, const int winHeight)
 		_backgroundGrid = new Grid();
 		_backgroundGrid->setProgram(_program[COLOR_SHADER]);
 		_backgroundGrid->setProgram(_program[TEXTURE_SHADER]);
+
+		TextureLoader* texture;
 		try {
-			_backgroundGrid->setTexture(new TextureLoader(rootPath + "textures/grid.png"));
+			texture = new TextureLoader(rootPath + "textures/grid.png");
 		}
 		catch (std::exception& e) {}
 		try {
-			_backgroundGrid->setTexture(new TextureLoader(visualStudioPath + "textures/grid.png"));
+			texture = new TextureLoader(visualStudioPath + "textures/grid.png");
 		}
 		catch (std::exception& e) {}
+
+		if (texture == NULL)
+		{
+			std::cout << "Failed to load background grid texture." << std::endl;
+			exit (1);
+		}
+
+		_textures.push_back(texture);
+		_backgroundGrid->setTexture(texture);
 
 		if (_backgroundGrid == NULL)
 		{
@@ -173,7 +184,9 @@ void Application::ImGuiInit()
 
 void Application::Loop()
 {
+	return;
 	_selectedObject = _objects[0];
+	_selectedObject = NULL;
 
 	while (!glfwWindowShouldClose(_window) && glfwGetKey(_window, GLFW_KEY_ESCAPE) != GLFW_PRESS)
 	{
@@ -198,7 +211,6 @@ void Application::Loop()
 		{
 			for (int i = 0; i < _objects.size(); i++)
 				_objects[i]->render();
-
 			_backgroundGrid->render();
 
 			_ui.renderUI();
@@ -253,7 +265,6 @@ void Application::instantiateObject()
 		logMessage += " ";
 		logMessage += _objectToInstantiate;
 	}
-	std::cout << _textures.size() << std::endl;
 
 	_ui.addToLogs(logMessage);
 	_objectToInstantiate.clear();

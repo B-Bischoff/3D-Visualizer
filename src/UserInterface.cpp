@@ -7,8 +7,8 @@ UserInterface::UserInterface(const int winWidth, const int winHeight)
 
 void UserInterface::update()
 {
-	updateObjetMenu();
 	updateHierarchy();
+	updateObjetMenu();
 	updateCamera();
 	updateInstantiate();
 }
@@ -27,6 +27,13 @@ void UserInterface::updateObjetMenu()
 	windowFlag |= ImGuiWindowFlags_NoResize;
 
 	ImGui::Begin("Model properties:");
+
+	if (*_object == NULL)
+	{
+		ImGui::End();
+		return;
+	}
+
 	ImGui::Text("Position (in world unit)");
 	ImGui::DragFloat("X position", &obj->translation.x, 0.05f);
 	ImGui::DragFloat("Y position", &obj->translation.y, 0.01f);
@@ -44,12 +51,12 @@ void UserInterface::updateObjetMenu()
 
 	ImGui::Text("Drawing mode");
 	int renderModeCombo = obj->renderMode;
-	ImGui::Combo("Selection", &renderModeCombo, "Triangle\0Wireframe\0points");
+	ImGui::Combo("Selection", &renderModeCombo, "Triangle\0Wireframe\0points\0");
 	obj->renderMode = Drawing_mode(renderModeCombo);
 
 	ImGui::Text("Material type");
 	int materialTypeCombo = obj->materialType;
-	ImGui::Combo("combo 2", &materialTypeCombo, "Color\0Texture");
+	ImGui::Combo("combo 2", &materialTypeCombo, "Color\0Texture\0");
 	obj->materialType = Material_type(materialTypeCombo);
 
 	if (obj->materialType == Material_type::COLOR)
@@ -91,7 +98,6 @@ void UserInterface::updateObjetMenu()
 			(*_object)->setTexture((*_textureList)[textureSelected]);
 	}
 
-
 	ImGui::End();
 }
 
@@ -109,18 +115,38 @@ void UserInterface::updateHierarchy()
 		char buf[32];
 		Object* obj = (*_objectList)[i];
 	
+		snprintf(buf, 32, "Delete %d", i);
+		if (ImGui::Button(buf))
+		{
+			std::vector<Object*>::iterator it;
+			it = _objectList->begin() + i;
+			Object* deleteObj = *it;
+			_objectList->erase(it);
+			if (deleteObj == *_object)
+				*_object = NULL;
+			delete *it;
+			continue;
+		}
+		ImGui::SameLine();
+
 		snprintf(buf, 32, "Show/Hide %d", i);
 		ImGui::Checkbox(buf, &obj->visible);
 
 		ImGui::SameLine();
 		
-		snprintf(buf, 32, "Object %d", i);
+		if ((*_objectList)[i] == *_object)
+			snprintf(buf, 32, "Object %d (selected)", i);
+		else
+			snprintf(buf, 32, "Object %d", i);
 		if (ImGui::Selectable(buf, hierarchySelected == i))
 			hierarchySelected = i;
 	}
 
 	if (hierarchySelected != -1)
+	{
 		*_object = (*_objectList)[hierarchySelected];
+		hierarchySelected = -1;
+	}
 
 	ImGui::End();
 }
@@ -145,10 +171,13 @@ void UserInterface::updateCamera()
 	ImGui::DragFloat("Pivot Y position", &_camera->targetPos.y, 0.01f);
 	ImGui::DragFloat("Pivot Z position", &_camera->targetPos.z, 0.01f);
 
-	ImGui::Text("Make selected object as pivot: ");
-	ImGui::SameLine();
-	if (ImGui::Button("Update"))
-		_camera->targetPos = (*_object)->translation;
+	if (*_object != NULL)
+	{
+		ImGui::Text("Make selected object as pivot: ");
+		ImGui::SameLine();
+		if (ImGui::Button("Update"))
+			_camera->targetPos = (*_object)->translation;
+	}
 
 	ImGui::Text("Camera sensitivity");
 	

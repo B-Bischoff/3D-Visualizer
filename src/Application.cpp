@@ -3,51 +3,6 @@
 const int WIN_HEIGHT = 1080;
 const int WIN_WIDTH = 1920;
 
-
-GLFWwindow* Init(const int WIN_WIDTH, const int WIN_HEIGHT)
-{
-	// Initialise GLFW
-	if( !glfwInit() )
-	{
-		std::cerr << "Failed to initialize GLFW" << std::endl;
-		std::cin.get();
-		exit(1);
-	}
-
-	// Window init
-	glfwWindowHint(GLFW_SAMPLES, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	// Open a window and create its OpenGL context
-	GLFWwindow* window = glfwCreateWindow( WIN_WIDTH, WIN_HEIGHT, "Tutorial 04 - Colored Cube", NULL, NULL);
-	if( window == NULL ){
-		std::cerr << "Failed to open GLWF window" << std::endl;
-		std::cin.get();
-		glfwTerminate();
-		exit(1);
-	}
-
-	glfwMakeContextCurrent(window);
-
-	// Initialize GLEW
-	glewExperimental = true; // Needed for core profile
-	if (glewInit() != GLEW_OK) {
-		std::cerr << "Failed to initialize GLEW" << std::endl;
-		std::cin.get();
-		glfwTerminate();
-		exit(1);
-	}
-
-	// Set input mode 
-
-	// Ensure we can capture the escape key being pressed below
-	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
-
-	return window;
-}
-
 void setViewAndProjectionMatrix(Camera& camera, Program& program)
 {	
 	program.useProgram();
@@ -66,41 +21,30 @@ Application::Application(const int winWidth, const int winHeight)
 	GlewInit();
 	ImGuiInit();
 
-	SetInputMode();
-
 	glEnable(GL_DEPTH_TEST);
 	_camera = new Camera(glm::vec3(0.0f, 0.0f, 20.0f));
 
 	const std::string rootPath = "./";
 	const std::string visualStudioPath = "../../../"; // Visual studio starts application in "./out/build/x64-Debug"
 
-	try {
-		_program.push_back(new Program(rootPath + "src/shaders/shader.vert", rootPath + "src/shaders/shaderTexture.frag"));
-		_program.push_back(new Program(rootPath + "src/shaders/shader.vert", rootPath + "src/shaders/shaderColor.frag"));
-	}
-	catch (std::exception& e) {}
-	try {
-		_program.push_back(new Program(visualStudioPath + "src/shaders/shader.vert", visualStudioPath + "src/shaders/shaderTexture.frag"));
-		_program.push_back(new Program(visualStudioPath + "src/shaders/shader.vert", visualStudioPath + "src/shaders/shaderColor.frag"));
-	}
-	catch (std::exception& e) {}
-
-
-	Object* obj = NULL;
-	try {
-		obj = new Object(ObjectLoader(rootPath + "objs/Bunny.obj"));
-	}
-	catch (std::exception& e) {}
-	try {
-		obj = new Object(ObjectLoader(visualStudioPath + "objs/Bunny.obj"));
-	}
-	catch (std::exception& e) {}
-
-	if (obj)
+	// Shader loading	
 	{
-		obj->addProgram(_program[COLOR_SHADER]);
-		obj->addProgram(_program[TEXTURE_SHADER]);
-		_objects.push_back(obj);
+		try {
+			_program.push_back(new Program(rootPath + "src/shaders/shader.vert", rootPath + "src/shaders/shaderTexture.frag"));
+			_program.push_back(new Program(rootPath + "src/shaders/shader.vert", rootPath + "src/shaders/shaderColor.frag"));
+		}
+		catch (std::exception& e) {}
+		try {
+			_program.push_back(new Program(visualStudioPath + "src/shaders/shader.vert", visualStudioPath + "src/shaders/shaderTexture.frag"));
+			_program.push_back(new Program(visualStudioPath + "src/shaders/shader.vert", visualStudioPath + "src/shaders/shaderColor.frag"));
+		}
+		catch (std::exception& e) {}
+		if (_program.size() == 0)
+		{ 
+			std::cout << "Failed to load shaders." << std::endl;
+			std::cout << "Are you in the right directory?" << std::endl;
+			exit (1);
+		}
 	}
 
 	// Input manager
@@ -116,19 +60,45 @@ Application::Application(const int winWidth, const int winHeight)
 	_ui.setTexturesList(&_textures);
 	_ui.setObjectToInstantiate(&_objectToInstantiate);
 
-
 	// Background grid
-	_backgroundGrid = new Grid();
-	_backgroundGrid->setProgram(_program[COLOR_SHADER]);
-	_backgroundGrid->setProgram(_program[TEXTURE_SHADER]);
-	try {
-		_backgroundGrid->setTexture(new TextureLoader(rootPath + "textures/grid.png"));
+	{
+		_backgroundGrid = new Grid();
+		_backgroundGrid->setProgram(_program[COLOR_SHADER]);
+		_backgroundGrid->setProgram(_program[TEXTURE_SHADER]);
+		try {
+			_backgroundGrid->setTexture(new TextureLoader(rootPath + "textures/grid.png"));
+		}
+		catch (std::exception& e) {}
+		try {
+			_backgroundGrid->setTexture(new TextureLoader(visualStudioPath + "textures/grid.png"));
+		}
+		catch (std::exception& e) {}
+
+		if (_backgroundGrid == NULL)
+		{
+			std::cout << "Failed to load background grid." << std::endl;
+			exit (1);
+		}
 	}
-	catch (std::exception& e) {}
-	try {
-		_backgroundGrid->setTexture(new TextureLoader(visualStudioPath + "textures/grid.png"));
+
+	// Init object load
+	{
+		Object* obj = NULL;
+		try {
+			obj = new Object(ObjectLoader(rootPath + "objs/Bunny.obj"));
+		}
+		catch (std::exception& e) {}
+		try {
+			obj = new Object(ObjectLoader(visualStudioPath + "objs/Bunny.obj"));
+		}
+		catch (std::exception& e) {}
+		if (obj)
+		{
+			obj->addProgram(_program[COLOR_SHADER]);
+			obj->addProgram(_program[TEXTURE_SHADER]);
+			_objects.push_back(obj);
+		}
 	}
-	catch (std::exception& e) {}
 }
 
 Application::~Application()
@@ -182,11 +152,6 @@ void Application::GlewInit()
 		glfwTerminate();
 		exit(1);
 	}
-}
-
-void Application::SetInputMode()
-{
-	glfwSetInputMode(_window, GLFW_STICKY_KEYS, GL_TRUE);
 }
 
 void Application::ImGuiInit()
@@ -252,16 +217,12 @@ void Application::instantiateObject()
 {
 	std::string logMessage;
 
-	/*
-	// Adapt time to linux functions
-	char buf[26];
-	time_t ltime;
-	time(&ltime);
-	ctime_r(buf, 26, &ltime);
-	buf[20] = '\0'; // Erase year
-
-	logMessage += buf + 11; // Skip date
-	*/
+	time_t rawTime;
+	struct tm * timeInfo;
+	time (&rawTime);
+	timeInfo = localtime(&rawTime);
+	std::string time(asctime(timeInfo));
+	logMessage += time.substr(11, 9); // prints time in format "hh:mm:ss " with no newline
 
 	try
 	{

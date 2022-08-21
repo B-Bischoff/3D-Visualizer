@@ -10,7 +10,6 @@
 #include <fstream>
 #include <ctime>
 #include <chrono>
-#include <cmath>
 
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
@@ -58,7 +57,6 @@ private:
 	void WindowInit();
 	void GlewInit();
 	void ImGuiInit();
-	void SetInputMode();
 
 	void instantiateObject();
 

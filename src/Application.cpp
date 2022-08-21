@@ -184,7 +184,6 @@ void Application::ImGuiInit()
 
 void Application::Loop()
 {
-	return;
 	_selectedObject = _objects[0];
 	_selectedObject = NULL;
 

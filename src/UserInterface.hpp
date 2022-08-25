@@ -11,6 +11,7 @@
 
 #include "Object.hpp"
 #include "Camera.hpp"
+#include "TextureLoader.hpp"
 
 class UserInterface {
 private:
@@ -24,10 +25,13 @@ private:
 	std::vector<Object*>* _objectList = NULL;
 	std::vector<TextureLoader*>* _textureList = NULL;
 
+	TextureLoader* _textures[2];
+
 	void updateObjetMenu();
 	void updateHierarchy();
 	void updateCamera();
 	void updateInstantiate();
+	void updateHelp();
 
 public:
 	UserInterface(const int winWidth, const int winHeight);
@@ -44,5 +48,6 @@ public:
 	void setObjectList(std::vector<Object*>* objectList);
 	void setTexturesList(std::vector<TextureLoader*>* textureList);
 	void setObjectToInstantiate(std::string* string);
+	void setTexture(TextureLoader* texture, int textureNumber);
 };
 

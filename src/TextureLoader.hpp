@@ -23,4 +23,6 @@ public:
 
 	void activeTexture(Program& program, const int GL_TEXTURE_NB);
 	unsigned int getTexture() const;
+	int getWidth();
+	int getHeight();
 };

@@ -11,6 +11,7 @@ void UserInterface::update()
 	updateObjetMenu();
 	updateCamera();
 	updateInstantiate();
+	updateHelp();
 }
 
 void UserInterface::updateObjetMenu()
@@ -124,7 +125,7 @@ void UserInterface::updateHierarchy()
 			_objectList->erase(it);
 			if (deleteObj == *_object)
 				*_object = NULL;
-			delete *it;
+			delete deleteObj;
 			continue;
 		}
 		ImGui::SameLine();
@@ -220,6 +221,42 @@ void UserInterface::updateInstantiate()
 	ImGui::End();
 }
 
+void UserInterface::updateHelp()
+{
+	ImGui::SetNextWindowPos(ImVec2(0, WIN_HEIGHT - 470), 0);
+	ImGui::SetNextWindowSize(ImVec2(600, 70));
+	ImGuiWindowFlags windowFlag = 0;
+	windowFlag |= ImGuiWindowFlags_NoMove;
+
+	ImGui::Begin("Help:", NULL, windowFlag);
+
+	if (_textures[0] != NULL && _textures[1] != NULL)
+	{
+		float texW, texH;
+
+		ImGui::Text("Esc: Close application");
+		ImGui::SameLine();
+
+		ImGui::AlignTextToFramePadding();
+		texW = (float)_textures[0]->getWidth();
+		texH = (float)_textures[0]->getHeight();
+		ImGui::Image((void*)(intptr_t)_textures[0]->getTexture(), ImVec2(texW, texH));
+		ImGui::SameLine();
+
+		ImGui::Text("Translate");
+		ImGui::SameLine();
+
+		texW = (float)_textures[1]->getWidth();
+		texH = (float)_textures[1]->getHeight();
+		ImGui::Image((void*)(intptr_t)_textures[1]->getTexture(), ImVec2(texW, texH));
+		ImGui::SameLine();
+
+		ImGui::Text("Rotate");
+		ImGui::SameLine();
+	}
+	ImGui::End();
+}
+
 void UserInterface::addToLogs(std::string& string)
 {
 	_logs += string;
@@ -270,3 +307,10 @@ void UserInterface::setObjectToInstantiate(std::string* string)
 {
 	this->_objectToInstantiate = string;
 }
+
+void UserInterface::setTexture(TextureLoader* texture, int textureNumber)
+{
+	if (textureNumber >= 0 && textureNumber <= 1)
+		_textures[textureNumber] = texture;
+}
+

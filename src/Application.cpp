@@ -54,19 +54,45 @@ Application::Application(const int winWidth, const int winHeight)
 	_input.InitCallbacks();
 
 	// User interface
-	_ui.setCamera(_camera);
-	_ui.setObject(&_selectedObject);
-	_ui.setObjectList(&_objects);
-	_ui.setTexturesList(&_textures);
-	_ui.setObjectToInstantiate(&_objectToInstantiate);
+	{
+		_ui.setCamera(_camera);
+		_ui.setObject(&_selectedObject);
+		_ui.setObjectList(&_objects);
+		_ui.setTexturesList(&_textures);
+		_ui.setObjectToInstantiate(&_objectToInstantiate);
 
+		TextureLoader* texture1 = NULL;
+		TextureLoader* texture2 = NULL;
+		try {
+			texture1 = new TextureLoader(rootPath + "textures/mouse.png");
+			texture2 = new TextureLoader(rootPath + "textures/mouse2.png");
+		}
+		catch (std::exception& e) {}
+		try {
+			texture1 = new TextureLoader(visualStudioPath + "textures/mouse.png");
+			texture2 = new TextureLoader(visualStudioPath + "textures/mouse2.png");
+		}
+		catch (std::exception& e) {}
+
+		if (texture1 == NULL || texture2 == NULL)
+		{
+			std::cout << "Failed to load ui texture." << std::endl;
+			exit (1);
+		}
+
+		_textures.push_back(texture1);
+		_textures.push_back(texture2);
+		_ui.setTexture(texture1, 0);
+		_ui.setTexture(texture2, 1);
+	}
+	
 	// Background grid
 	{
 		_backgroundGrid = new Grid();
 		_backgroundGrid->setProgram(_program[COLOR_SHADER]);
 		_backgroundGrid->setProgram(_program[TEXTURE_SHADER]);
 
-		TextureLoader* texture;
+		TextureLoader* texture = NULL;
 		try {
 			texture = new TextureLoader(rootPath + "textures/grid.png");
 		}

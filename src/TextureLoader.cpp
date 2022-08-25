@@ -59,3 +59,13 @@ unsigned int TextureLoader::getTexture() const
     return this->_texture;
 }
 
+int TextureLoader::getWidth()
+{
+    return this->_width;
+}
+
+int TextureLoader::getHeight()
+{
+    return this->_height;
+}
+

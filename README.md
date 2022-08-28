@@ -1,5 +1,5 @@
 # 3D-Visualizer
-This 3D interactive applications allows you to load and visualize ".obj" files content.
+This 3D interactive application allows you to load and visualize ".obj" files content.
 You also have the possibility to change objects properties and even apply textures to them.
 ![demo-01](https://user-images.githubusercontent.com/79707661/187076055-c2d550ef-ac46-4d9c-8461-3c2d6dfa0d6d.png)
 

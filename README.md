@@ -7,7 +7,7 @@ You also have the possibility to change objects properties and even apply textur
 Using Visual Studio you can execute the "CMakeLists.txt" script to build and start the application.
 
 ## Linux building
-Make sure CMake, Git and FCC are install by typing `sudo apt-get install cmake git g++`
+Make sure CMake, Git and GCC are installed by typing `sudo apt-get install cmake git g++`
 You may also need to install the required packages: `sudo apt-get install libsoil-dev libglm-dev libglew-dev libglfw3-dev libxinerama-dev libxcuros-dev libxi-dev libfreetype-dev libgl1-mesa-dev xorg-dev freeglut3-dev`
 
 To install, build and start the application, type the following commands:

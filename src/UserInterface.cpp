@@ -20,8 +20,8 @@ void UserInterface::updateObjetMenu()
 
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-	ImGui::SetNextWindowPos(ImVec2(WIN_WIDTH - 400, 0), 0);
-	ImGui::SetNextWindowSize(ImVec2(400, WIN_HEIGHT / 2.0f), 0);
+	ImGui::SetNextWindowPos(ImVec2(WIN_WIDTH - 400.0f, 0.0f), 0);
+	ImGui::SetNextWindowSize(ImVec2(400.0f, WIN_HEIGHT / 2.0f), 0);
 	ImGuiWindowFlags windowFlag = 0;
 	windowFlag |= ImGuiWindowFlags_NoMove;
 	windowFlag |= ImGuiWindowFlags_NoCollapse;
@@ -154,8 +154,8 @@ void UserInterface::updateHierarchy()
 
 void UserInterface::updateCamera()
 {
-	ImGui::SetNextWindowPos(ImVec2(WIN_WIDTH - 400, WIN_HEIGHT / 2.0f), 0);
-	ImGui::SetNextWindowSize(ImVec2(400, WIN_HEIGHT / 2.0f), 0);
+	ImGui::SetNextWindowPos(ImVec2(WIN_WIDTH - 400.0f, WIN_HEIGHT / 2.0f), 0);
+	ImGui::SetNextWindowSize(ImVec2(400.0f, WIN_HEIGHT / 2.0f), 0);
 	ImGuiWindowFlags windowFlag = 0;
 	windowFlag |= ImGuiWindowFlags_NoMove;
 	windowFlag |= ImGuiWindowFlags_NoResize;
@@ -191,8 +191,8 @@ void UserInterface::updateCamera()
 
 void UserInterface::updateInstantiate()
 {
-	ImGui::SetNextWindowPos(ImVec2(0, WIN_HEIGHT - 400), 0);
-	ImGui::SetNextWindowSize(ImVec2(600, 400), 0);
+	ImGui::SetNextWindowPos(ImVec2(0.0f, WIN_HEIGHT - 400.0f), 0);
+	ImGui::SetNextWindowSize(ImVec2(600.0f, 400.0f), 0);
 	ImGuiWindowFlags windowFlag = 0;
 	windowFlag |= ImGuiWindowFlags_NoMove;
 
@@ -223,8 +223,8 @@ void UserInterface::updateInstantiate()
 
 void UserInterface::updateHelp()
 {
-	ImGui::SetNextWindowPos(ImVec2(0, WIN_HEIGHT - 470), 0);
-	ImGui::SetNextWindowSize(ImVec2(600, 70));
+	ImGui::SetNextWindowPos(ImVec2(0.0f, WIN_HEIGHT - 470.0f), 0);
+	ImGui::SetNextWindowSize(ImVec2(600.0f, 70.0f));
 	ImGuiWindowFlags windowFlag = 0;
 	windowFlag |= ImGuiWindowFlags_NoMove;
 

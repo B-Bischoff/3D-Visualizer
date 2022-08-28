@@ -19,7 +19,7 @@ Input::Input(Object** object)
 {
 }
 
-void Input::InitCallbacks()
+void Input::initCallbacks()
 {
 	glfwSetScrollCallback(_window, scroll_callback);
 }

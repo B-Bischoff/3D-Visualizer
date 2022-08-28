@@ -25,7 +25,7 @@ private:
 	std::vector<Object*>* _objectList = NULL;
 	std::vector<TextureLoader*>* _textureList = NULL;
 
-	TextureLoader* _textures[2];
+	TextureLoader* _textures[2] = {NULL, NULL};
 
 	void updateObjetMenu();
 	void updateHierarchy();

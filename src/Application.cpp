@@ -24,118 +24,12 @@ Application::Application(const int winWidth, const int winHeight)
 	glEnable(GL_DEPTH_TEST);
 	_camera = new Camera(glm::vec3(0.0f, 0.0f, 20.0f));
 
-	const std::string rootPath = "./";
-	const std::string visualStudioPath = "../../../"; // Visual studio starts application in "./out/build/x64-Debug"
-
-	// Shader loading	
-	{
-		try {
-			_program.push_back(new Program(rootPath + "src/shaders/shader.vert", rootPath + "src/shaders/shaderTexture.frag"));
-			_program.push_back(new Program(rootPath + "src/shaders/shader.vert", rootPath + "src/shaders/shaderColor.frag"));
-		}
-		catch (std::exception& e) {}
-		try {
-			_program.push_back(new Program(visualStudioPath + "src/shaders/shader.vert", visualStudioPath + "src/shaders/shaderTexture.frag"));
-			_program.push_back(new Program(visualStudioPath + "src/shaders/shader.vert", visualStudioPath + "src/shaders/shaderColor.frag"));
-		}
-		catch (std::exception& e) {}
-		if (_program.size() == 0)
-		{ 
-			std::cout << "Failed to load shaders." << std::endl;
-			std::cout << "Are you in the right directory?" << std::endl;
-			exit (1);
-		}
-	}
-
-	// Input manager
-	_input = Input(&_selectedObject);
-	_input.setCamera(_camera);
-	_input.setWindow(_window);
-	_input.InitCallbacks();
-
-	// User interface
-	{
-		_ui.setCamera(_camera);
-		_ui.setObject(&_selectedObject);
-		_ui.setObjectList(&_objects);
-		_ui.setTexturesList(&_textures);
-		_ui.setObjectToInstantiate(&_objectToInstantiate);
-
-		TextureLoader* texture1 = NULL;
-		TextureLoader* texture2 = NULL;
-		try {
-			texture1 = new TextureLoader(rootPath + "textures/mouse.png");
-			texture2 = new TextureLoader(rootPath + "textures/mouse2.png");
-		}
-		catch (std::exception& e) {}
-		try {
-			texture1 = new TextureLoader(visualStudioPath + "textures/mouse.png");
-			texture2 = new TextureLoader(visualStudioPath + "textures/mouse2.png");
-		}
-		catch (std::exception& e) {}
-
-		if (texture1 == NULL || texture2 == NULL)
-		{
-			std::cout << "Failed to load ui texture." << std::endl;
-			exit (1);
-		}
-
-		_textures.push_back(texture1);
-		_textures.push_back(texture2);
-		_ui.setTexture(texture1, 0);
-		_ui.setTexture(texture2, 1);
-	}
+	shaderInit();
+	inputManagerInit();
+	uiInit();
+	backgroundGridInit();
 	
-	// Background grid
-	{
-		_backgroundGrid = new Grid();
-		_backgroundGrid->setProgram(_program[COLOR_SHADER]);
-		_backgroundGrid->setProgram(_program[TEXTURE_SHADER]);
-
-		TextureLoader* texture = NULL;
-		try {
-			texture = new TextureLoader(rootPath + "textures/grid.png");
-		}
-		catch (std::exception& e) {}
-		try {
-			texture = new TextureLoader(visualStudioPath + "textures/grid.png");
-		}
-		catch (std::exception& e) {}
-
-		if (texture == NULL)
-		{
-			std::cout << "Failed to load background grid texture." << std::endl;
-			exit (1);
-		}
-
-		_textures.push_back(texture);
-		_backgroundGrid->setTexture(texture);
-
-		if (_backgroundGrid == NULL)
-		{
-			std::cout << "Failed to load background grid." << std::endl;
-			exit (1);
-		}
-	}
-
-	// Init object load
-	{
-		Object* obj = NULL;
-		try {
-			obj = new Object(ObjectLoader(rootPath + "objs/Bunny.obj"));
-		}
-		catch (std::exception& e) {}
-		try {
-			obj = new Object(ObjectLoader(visualStudioPath + "objs/Bunny.obj"));
-		}
-		catch (std::exception& e) {}
-		if (obj)
-		{
-			obj->addProgram(_program[COLOR_SHADER]);
-			obj->addProgram(_program[TEXTURE_SHADER]);
-			_objects.push_back(obj);
-		}
-	}
+	loadDefaultObject();
 }
 
 Application::~Application()
@@ -206,6 +100,118 @@ void Application::ImGuiInit()
 	ImGui::StyleColorsDark();
 	ImGui_ImplGlfw_InitForOpenGL(_window, true);
 	ImGui_ImplOpenGL3_Init(glsl_version);
+}
+
+void Application::shaderInit()
+{
+	try {
+		_program.push_back(new Program(ROOT_PATH + "src/shaders/shader.vert", ROOT_PATH + "src/shaders/shaderTexture.frag"));
+		_program.push_back(new Program(ROOT_PATH + "src/shaders/shader.vert", ROOT_PATH + "src/shaders/shaderColor.frag"));
+	}
+	catch (std::exception& e) {}
+	try {
+		_program.push_back(new Program(VS_PATH + "src/shaders/shader.vert", VS_PATH + "src/shaders/shaderTexture.frag"));
+		_program.push_back(new Program(VS_PATH + "src/shaders/shader.vert", VS_PATH + "src/shaders/shaderColor.frag"));
+	}
+	catch (std::exception& e) {}
+	if (_program.size() == 0)
+	{ 
+		std::cout << "Failed to load shaders." << std::endl;
+		std::cout << "Are you in the right directory?" << std::endl;
+		exit (1);
+	}
+}
+
+void Application::inputManagerInit()
+{
+	_input = Input(&_selectedObject);
+	_input.setCamera(_camera);
+	_input.setWindow(_window);
+	_input.initCallbacks();
+}
+
+void Application::uiInit()
+{
+	_ui.setCamera(_camera);
+	_ui.setObject(&_selectedObject);
+	_ui.setObjectList(&_objects);
+	_ui.setTexturesList(&_textures);
+	_ui.setObjectToInstantiate(&_objectToInstantiate);
+
+	TextureLoader* texture1 = NULL;
+	TextureLoader* texture2 = NULL;
+	try {
+		texture1 = new TextureLoader(ROOT_PATH + "textures/mouse.png");
+		texture2 = new TextureLoader(ROOT_PATH + "textures/mouse2.png");
+	}
+	catch (std::exception& e) {}
+	try {
+		texture1 = new TextureLoader(VS_PATH + "textures/mouse.png");
+		texture2 = new TextureLoader(VS_PATH + "textures/mouse2.png");
+	}
+	catch (std::exception& e) {}
+
+	if (texture1 == NULL || texture2 == NULL)
+	{
+		std::cout << "Failed to load ui texture." << std::endl;
+		exit (1);
+	}
+
+	_textures.push_back(texture1);
+	_textures.push_back(texture2);
+	_ui.setTexture(texture1, 0);
+	_ui.setTexture(texture2, 1);
+}
+
+void Application::backgroundGridInit()
+{
+	_backgroundGrid = new Grid();
+	_backgroundGrid->setProgram(_program[COLOR_SHADER]);
+	_backgroundGrid->setProgram(_program[TEXTURE_SHADER]);
+
+	TextureLoader* texture = NULL;
+	try {
+		texture = new TextureLoader(ROOT_PATH + "textures/grid.png");
+	}
+	catch (std::exception& e) {}
+	try {
+		texture = new TextureLoader(VS_PATH + "textures/grid.png");
+	}
+	catch (std::exception& e) {}
+
+	if (texture == NULL)
+	{
+		std::cout << "Failed to load background grid texture." << std::endl;
+		exit (1);
+	}
+
+	_textures.push_back(texture);
+	_backgroundGrid->setTexture(texture);
+
+	if (_backgroundGrid == NULL)
+	{
+		std::cout << "Failed to load background grid." << std::endl;
+		exit (1);
+	}
+}
+
+void Application::loadDefaultObject()
+{
+	Object* obj = NULL;
+	try {
+		obj = new Object(ObjectLoader(ROOT_PATH + "objs/Bunny.obj"));
+	}
+	catch (std::exception& e) {}
+	try {
+		obj = new Object(ObjectLoader(VS_PATH + "objs/Bunny.obj"));
+	}
+	catch (std::exception& e) {}
+	if (obj)
+	{
+		obj->addProgram(_program[COLOR_SHADER]);
+		obj->addProgram(_program[TEXTURE_SHADER]);
+		_objects.push_back(obj);
+	}
 }
 
 void Application::Loop()

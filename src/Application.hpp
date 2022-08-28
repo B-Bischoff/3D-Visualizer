@@ -50,13 +50,22 @@ private:
 
 	std::string _objectToInstantiate;
 
-	std::time_t endTime;
+	const std::string ROOT_PATH = "./";
+	const std::string VS_PATH = "../../../"; // Visual studio starts application in "./out/build/x64-Debug"
 
 	// Init
 	void GlfwInit();
 	void WindowInit();
 	void GlewInit();
 	void ImGuiInit();
+
+	void shaderInit();
+	void inputManagerInit();
+	void uiInit();
+	void backgroundGridInit();
+
+	void loadDefaultObject();
+
 
 	void instantiateObject();
 

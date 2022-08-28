@@ -34,7 +34,7 @@ public:
 	Input(GLFWwindow* window, Camera* camera, Object** object);
 	Input(Object** object);
 
-	void InitCallbacks();
+	void initCallbacks();
 	void processInput();
 
 	void setCamera(Camera* camera);

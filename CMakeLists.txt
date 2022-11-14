@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
 project(3D-visualizer)
 
+set(CMAKE_CXX_STANDARD 20) # this does nothing for MSVC, use target_compile_options below
+
 find_package(OpenGL REQUIRED)
 
 # Compile external dependencies 

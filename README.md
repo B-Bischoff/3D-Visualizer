@@ -8,7 +8,7 @@ Using Visual Studio you can execute the "CMakeLists.txt" script to build and sta
 
 ## Linux building
 Make sure CMake, Git and GCC are installed by typing `sudo apt-get install cmake git g++`
-You may also need to install the required packages: `sudo apt-get install libsoil-dev libglm-dev libglew-dev libglfw3-dev libxinerama-dev libxcuros-dev libxi-dev libfreetype-dev libgl1-mesa-dev xorg-dev freeglut3-dev`
+You may also need to install the required packages: `sudo apt-get install libsoil-dev libglm-dev libglew-dev libglfw3-dev libxinerama-dev libxcursor-dev libxi-dev libfreetype-dev libgl1-mesa-dev xorg-dev freeglut3-dev`
 
 To install, build and start the application, type the following commands:
 
